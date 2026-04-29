@@ -10,9 +10,17 @@ const SQUASH_MS = 220;
 const DEATH_PER_SEGMENT_MS = 280;
 const DEATH_STAGGER_MS = 35;
 
+interface SegmentState {
+  readonly g: Graphics;
+  drawnSize: number;
+  drawnIsHead: boolean;
+  drawnDir: Direction | null;
+  drawnSquash: number;
+}
+
 export class SnakeRenderer {
   readonly view = new Container();
-  private readonly segments: Graphics[] = [];
+  private readonly segments: SegmentState[] = [];
   private config: SnakeConfig;
   private squashStart = -Infinity;
   private dyingStart = -Infinity;
@@ -26,7 +34,7 @@ export class SnakeRenderer {
 
   setConfig(config: SnakeConfig): void {
     this.config = config;
-    this.segments.forEach(g => g.destroy());
+    this.segments.forEach(s => s.g.destroy());
     this.segments.length = 0;
     this.dyingStart = -Infinity;
     this.squashStart = -Infinity;
@@ -66,19 +74,26 @@ export class SnakeRenderer {
       const px = boardPadding + cellX * cellSize + cellSize / 2;
       const py = boardPadding + cellY * cellSize + cellSize / 2;
 
-      const g = this.segments[i];
-      g.clear();
+      const seg = this.segments[i];
+      const g = seg.g;
       g.position.set(px, py);
-      g.scale.set(1);
-      g.rotation = 0;
-      g.alpha = 1;
 
       const isHead = i === 0;
       const taper = Math.max(0, 1 - i * 0.012);
       const baseSize = (cellSize - 4) * taper;
       const size = isHead ? baseSize * (1 + squashAmt) : baseSize;
-      const radius = Math.min(8, size / 2.5);
 
+      const needsRedraw =
+        seg.drawnSize === -1 ||
+        seg.drawnIsHead !== isHead ||
+        (isHead
+          ? seg.drawnSquash !== squashAmt || seg.drawnDir !== dir
+          : seg.drawnSize !== size);
+
+      if (!needsRedraw) continue;
+
+      const radius = Math.min(8, size / 2.5);
+      g.clear();
       g.roundRect(-size / 2, -size / 2, size, size, radius)
         .fill({ color: isHead ? HEAD_COLOR : BODY_COLOR });
 
@@ -94,6 +109,11 @@ export class SnakeRenderer {
           g.circle(ex, ey, eyeR).fill({ color: EYE_COLOR });
         }
       }
+
+      seg.drawnSize = size;
+      seg.drawnIsHead = isHead;
+      seg.drawnDir = isHead ? dir : null;
+      seg.drawnSquash = isHead ? squashAmt : 0;
     }
   }
 
@@ -104,7 +124,7 @@ export class SnakeRenderer {
     const elapsed = performance.now() - this.dyingStart;
 
     for (let i = 0; i < Math.min(this.segments.length, curr.length); i++) {
-      const g = this.segments[i];
+      const g = this.segments[i].g;
       const segDelay = i * DEATH_STAGGER_MS;
       const segT = Math.max(0, Math.min(1, (elapsed - segDelay) / DEATH_PER_SEGMENT_MS));
 
@@ -123,11 +143,17 @@ export class SnakeRenderer {
     while (this.segments.length < n) {
       const g = new Graphics();
       this.view.addChild(g);
-      this.segments.push(g);
+      this.segments.push({
+        g,
+        drawnSize: -1,
+        drawnIsHead: false,
+        drawnDir: null,
+        drawnSquash: 0
+      });
     }
     while (this.segments.length > n) {
-      const g = this.segments.pop();
-      g?.destroy();
+      const seg = this.segments.pop();
+      seg?.g.destroy();
     }
   }
 }

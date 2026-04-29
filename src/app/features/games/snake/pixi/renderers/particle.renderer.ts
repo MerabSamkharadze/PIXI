@@ -13,6 +13,15 @@ export class ParticleRenderer {
   private readonly active: Particle[] = [];
   private readonly pool: Graphics[] = [];
 
+  prewarm(count: number): void {
+    while (this.pool.length < count) {
+      const g = new Graphics();
+      g.visible = false;
+      this.view.addChild(g);
+      this.pool.push(g);
+    }
+  }
+
   burst(cx: number, cy: number, color: number, count = 14): void {
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;

@@ -37,6 +37,7 @@ export class SnakeGame extends BasePixiGame {
   private ticker: Ticker | null = null;
   private accum = 0;
   private shakeMs = 0;
+  private shakeActive = false;
   private baseX = 0;
   private baseY = 0;
 
@@ -75,6 +76,7 @@ export class SnakeGame extends BasePixiGame {
       this.flash.view
     );
 
+    this.particles.prewarm(14);
     this.applyFlashSize();
     this.center();
 
@@ -230,11 +232,10 @@ export class SnakeGame extends BasePixiGame {
       const sx = (Math.random() * 2 - 1) * intensity;
       const sy = (Math.random() * 2 - 1) * intensity;
       this.playRoot.position.set(this.baseX + sx, this.baseY + sy);
-    } else if (
-      this.playRoot &&
-      (this.playRoot.position.x !== this.baseX || this.playRoot.position.y !== this.baseY)
-    ) {
+      this.shakeActive = true;
+    } else if (this.shakeActive && this.playRoot) {
       this.playRoot.position.set(this.baseX, this.baseY);
+      this.shakeActive = false;
     }
   }
 }
