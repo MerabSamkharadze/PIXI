@@ -3,24 +3,22 @@ import { BasePixiGame } from '../../../core/game/base-pixi-game';
 import { GameStateService } from './domain/state/game-state.service';
 import { GameEngineService as MemoryRulesService } from './domain/services/game-engine.service';
 import { BoardRenderer } from './pixi/renderers/board.renderer';
-import { GameConfig } from './domain/models/game-config.model';
+import { GameConfig, pickMemoryConfig } from './domain/models/game-config.model';
 
-/**
- * Pixi-side of Memory: owns the BoardRenderer and reacts to state via effect().
- * Angular DOM/HUD lives in MemoryShell.
- */
 export class MemoryGame extends BasePixiGame {
   readonly id = 'memory';
   private board: BoardRenderer | null = null;
   private effectRef: EffectRef | null = null;
+  private config: GameConfig;
 
   constructor(
-    private readonly config: GameConfig,
+    config: GameConfig,
     private readonly state: GameStateService,
     private readonly rules: MemoryRulesService,
     private readonly injector: Injector
   ) {
     super();
+    this.config = config;
   }
 
   protected init(): void {
@@ -42,6 +40,11 @@ export class MemoryGame extends BasePixiGame {
 
   resize(width: number, height: number): void {
     if (!this.board) return;
+    const next = pickMemoryConfig(window.innerWidth);
+    if (next !== this.config) {
+      this.config = next;
+      this.board.setConfig(next);
+    }
     const size = this.board.boardSize();
     this.board.view.position.set((width - size.width) / 2, (height - size.height) / 2);
   }

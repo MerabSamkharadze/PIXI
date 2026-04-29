@@ -14,12 +14,14 @@ export class CardRenderer {
   private readonly label: Text;
   private flipProgress = 0;
   private currentState: CardState = 'hidden';
+  private size: number;
 
   constructor(
     readonly card: Card,
-    private readonly size: number,
+    size: number,
     private readonly onClick: (id: number) => void
   ) {
+    this.size = size;
     this.view.eventMode = 'static';
     this.view.cursor = 'pointer';
     this.view.pivot.set(size / 2, size / 2);
@@ -54,6 +56,15 @@ export class CardRenderer {
     this.label.alpha = 0;
 
     this.view.addChild(this.back, this.face, this.label);
+    this.draw();
+  }
+
+  setSize(size: number): void {
+    if (size === this.size) return;
+    this.size = size;
+    this.view.pivot.set(size / 2, size / 2);
+    this.label.style.fontSize = size * 0.6;
+    this.label.position.set(size / 2, size / 2);
     this.draw();
   }
 

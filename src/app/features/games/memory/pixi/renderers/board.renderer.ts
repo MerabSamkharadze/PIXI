@@ -7,17 +7,21 @@ export class BoardRenderer {
   readonly view = new Container();
   private readonly cards = new Map<number, CardRenderer>();
   private readonly ticker: Ticker;
+  private config: GameConfig;
+  private lastCards: readonly Card[] = [];
 
   constructor(
-    private readonly config: GameConfig,
+    config: GameConfig,
     private readonly onCardClick: (id: number) => void
   ) {
+    this.config = config;
     this.ticker = new Ticker();
     this.ticker.add(t => this.cards.forEach(c => c.tick(t.deltaMS)));
     this.ticker.start();
   }
 
   syncCards(cards: readonly Card[]): void {
+    this.lastCards = cards;
     const seen = new Set<number>();
     cards.forEach((card, idx) => {
       seen.add(card.id);
@@ -36,6 +40,15 @@ export class BoardRenderer {
         renderer.destroy();
         this.cards.delete(id);
       }
+    });
+  }
+
+  setConfig(config: GameConfig): void {
+    if (config === this.config) return;
+    this.config = config;
+    this.cards.forEach(c => c.setSize(config.cardSize));
+    this.lastCards.forEach((card, idx) => {
+      this.cards.get(card.id)?.setPosition(...this.gridPos(idx));
     });
   }
 
