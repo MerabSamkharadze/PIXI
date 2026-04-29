@@ -28,12 +28,25 @@ export class CardRenderer {
     this.view.on('pointerout', () => this.hover(false));
 
     this.label = new Text({
-      text: card.assetKey.toUpperCase(),
+      text: card.assetKey,
       style: {
-        fontFamily: 'system-ui, sans-serif',
-        fontSize: size * 0.36,
-        fontWeight: '700',
-        fill: 0xffffff
+        fontFamily: [
+          '"Segoe UI Emoji"',
+          '"Apple Color Emoji"',
+          '"Noto Color Emoji"',
+          'system-ui',
+          'sans-serif'
+        ],
+        fontSize: size * 0.6,
+        fill: 0xffffff,
+        align: 'center',
+        dropShadow: {
+          color: 0x000000,
+          alpha: 0.55,
+          blur: 6,
+          angle: Math.PI / 4,
+          distance: 3
+        }
       }
     });
     this.label.anchor.set(0.5);

@@ -15,7 +15,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   gap: 16,
   boardPadding: 12,
   previewMs: 900,
-  assetKeys: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
+  assetKeys: ['🍕', '🍔', '🍟', '🍣', '🍩', '🍦', '🍓', '🍇']
 };
 
 export type GamePhase = 'idle' | 'playing' | 'locked' | 'won';
