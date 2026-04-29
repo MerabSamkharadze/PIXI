@@ -38,11 +38,10 @@ export const GAMES: readonly GameRegistration[] = [
       description: 'Eat, grow, don’t bite yourself. Reflex-driven arcade.',
       thumbnail: '🐍',
       tags: ['arcade', 'reflex'],
-      accent: '#a3e635' /* acid green */,
-      disabled: true
+      accent: '#a3e635' /* acid green */
     },
     loadShell: () =>
-      import('./features/games/memory/memory.shell').then(m => m.MemoryShell)
+      import('./features/games/snake/snake.shell').then(m => m.SnakeShell)
   },
   {
     manifest: {

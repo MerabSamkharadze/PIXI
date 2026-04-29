@@ -32,8 +32,6 @@ export const MOBILE_CONFIG: GameConfig = {
   assetKeys: ASSET_KEYS
 };
 
-export const DEFAULT_CONFIG = DESKTOP_CONFIG;
-
 export function pickMemoryConfig(viewportWidth: number): GameConfig {
   return configFor(getLayoutMode(viewportWidth));
 }
