@@ -11,6 +11,7 @@ export class GameStateService {
   private readonly _moves = signal(0);
   private readonly _matches = signal(0);
   private readonly _startedAt = signal<number | null>(null);
+  private readonly _finishedAt = signal<number | null>(null);
 
   readonly config = this._config.asReadonly();
   readonly cards = this._cards.asReadonly();
@@ -19,9 +20,15 @@ export class GameStateService {
   readonly moves = this._moves.asReadonly();
   readonly matches = this._matches.asReadonly();
   readonly startedAt = this._startedAt.asReadonly();
+  readonly finishedAt = this._finishedAt.asReadonly();
 
   readonly totalPairs = computed(() => Math.floor(this._cards().length / 2));
   readonly isWon = computed(() => this._phase() === 'won');
+  readonly elapsedMs = computed(() => {
+    const start = this._startedAt();
+    const end = this._finishedAt();
+    return start && end ? end - start : 0;
+  });
 
   init(config: GameConfig, cards: readonly Card[]): void {
     this._config.set(config);
@@ -31,6 +38,12 @@ export class GameStateService {
     this._matches.set(0);
     this._phase.set('playing');
     this._startedAt.set(performance.now());
+    this._finishedAt.set(null);
+  }
+
+  markWon(): void {
+    this._finishedAt.set(performance.now());
+    this._phase.set('won');
   }
 
   setCardState(id: CardId, state: Card['state']): void {

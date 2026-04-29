@@ -42,7 +42,7 @@ export class GameEngineService {
       this.state.setFlipped([]);
 
       if (this.state.matches() === this.state.totalPairs()) {
-        this.state.setPhase('won');
+        this.state.markWon();
       }
       return;
     }
