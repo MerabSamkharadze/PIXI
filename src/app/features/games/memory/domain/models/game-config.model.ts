@@ -3,6 +3,7 @@ export interface GameConfig {
   readonly cols: number;
   readonly cardSize: number;
   readonly gap: number;
+  readonly boardPadding: number;
   readonly previewMs: number;
   readonly assetKeys: readonly string[];
 }
@@ -12,6 +13,7 @@ export const DEFAULT_CONFIG: GameConfig = {
   cols: 4,
   cardSize: 140,
   gap: 16,
+  boardPadding: 12,
   previewMs: 900,
   assetKeys: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 };

@@ -1,0 +1,221 @@
+:host {
+  --accent: #a855f7;
+  display: block;
+  perspective: 800px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  min-height: 260px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  overflow: hidden;
+  isolation: isolate;
+  box-shadow: var(--shadow-card);
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, transparent 40%, var(--accent) 100%);
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-out);
+    pointer-events: none;
+  }
+}
+
+/* —— ambient glow background ————————————————————— */
+.card-bg {
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  background: radial-gradient(circle at 0% 0%, var(--accent), transparent 55%);
+  opacity: 0.18;
+  filter: blur(40px);
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+
+/* —— sweep light on hover ——————————————————————— */
+.card-light {
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0.06) 55%,
+    transparent 100%
+  );
+  transition: left var(--dur-slow) var(--ease-out);
+  pointer-events: none;
+}
+
+/* —— thumb —————————————————————————————————————————— */
+.thumb {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)),
+    rgba(2, 6, 23, 0.6);
+  border: 1px solid var(--border-strong);
+  font-size: 36px;
+}
+
+.thumb-icon {
+  filter: drop-shadow(0 0 14px var(--accent));
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.thumb-ring {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid var(--accent);
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out), inset var(--dur-base) var(--ease-out);
+}
+
+/* —— body —————————————————————————————————————————— */
+.body { display: flex; flex-direction: column; gap: 6px; }
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.desc {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* —— meta row ——————————————————————————————————— */
+.meta {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tag {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+  transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+
+  svg { transition: transform var(--dur-fast) var(--ease-out); }
+}
+
+/* —— hover —————————————————————————————————————————— */
+.card:hover {
+  transform: translateY(-6px) scale(1.012);
+  border-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent) 35%, transparent),
+    0 22px 50px -22px var(--accent),
+    0 0 80px -30px var(--accent);
+
+  &::before { opacity: 0.9; }
+
+  .card-bg { opacity: 0.32; }
+  .card-light { left: 120%; }
+  .thumb-icon { transform: scale(1.08) rotate(-4deg); }
+  .thumb-ring { opacity: 0.6; inset: -3px; }
+
+  .cta {
+    background: color-mix(in oklab, var(--accent) 22%, transparent);
+    svg { transform: translateX(2px); }
+  }
+}
+
+/* —— disabled (Coming Soon) ——————————————————————— */
+:host(.is-disabled) .card {
+  cursor: default;
+  pointer-events: none;
+  filter: saturate(0.6) brightness(0.85);
+
+  .desc, .title { color: var(--text-faint); }
+}
+
+.ribbon {
+  position: absolute;
+  top: 16px;
+  right: -42px;
+  z-index: 2;
+  width: 160px;
+  padding: 6px 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #020617;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-violet));
+  transform: rotate(35deg);
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.5);
+
+  span { display: block; }
+}

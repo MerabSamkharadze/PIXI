@@ -103,9 +103,10 @@ export class MemoryShell implements AfterViewInit {
   private async boot(): Promise<void> {
     const config = DEFAULT_CONFIG;
     const game = new MemoryGame(config, this.state, this.rules, this.injector);
-    const width = config.cols * config.cardSize + (config.cols - 1) * config.gap;
-    const height = config.rows * config.cardSize + (config.rows - 1) * config.gap;
-    await this.engine.start(this.stageRef().nativeElement, game, width, height);
+    const innerW = config.cols * config.cardSize + (config.cols - 1) * config.gap;
+    const innerH = config.rows * config.cardSize + (config.rows - 1) * config.gap;
+    const pad = config.boardPadding * 2;
+    await this.engine.start(this.stageRef().nativeElement, game, innerW + pad, innerH + pad);
     this.game = game;
   }
 }

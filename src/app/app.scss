@@ -1,0 +1,91 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.app-nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px clamp(20px, 3vw, 40px);
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.85), rgba(2, 6, 23, 0.55));
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  font-size: 13px;
+  transition: filter var(--dur-fast) var(--ease-out);
+
+  &:hover { filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.55)); }
+}
+
+.brand-mark {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 10px currentColor;
+}
+.dot-violet { color: var(--neon-violet); background: currentColor; }
+.dot-cyan   { color: var(--neon-cyan);   background: currentColor; }
+.dot-green  { color: var(--neon-green);  background: currentColor; }
+
+.brand-name { display: inline-flex; align-items: baseline; }
+.brand-sep {
+  margin: 0 6px;
+  color: var(--neon-cyan);
+  font-size: 16px;
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
+}
+
+.nav-meta { display: flex; align-items: center; gap: 16px; }
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--neon-green);
+  background: rgba(163, 230, 53, 0.08);
+  border: 1px solid rgba(163, 230, 53, 0.22);
+}
+
+.pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--neon-green);
+  box-shadow: 0 0 8px var(--neon-green);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.8); }
+}
+
+.app-main {
+  display: block;
+  min-height: calc(100vh - 60px);
+}

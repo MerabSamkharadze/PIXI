@@ -1,0 +1,38 @@
+@let m = manifest();
+
+<a class="card" [routerLink]="route()" [attr.aria-disabled]="m.disabled || null">
+  <div class="card-bg" aria-hidden="true"></div>
+  <div class="card-light" aria-hidden="true"></div>
+
+  @if (m.disabled) {
+    <div class="ribbon" aria-hidden="true">
+      <span>Coming Soon</span>
+    </div>
+  }
+
+  <div class="thumb">
+    <span class="thumb-icon">{{ m.thumbnail }}</span>
+    <span class="thumb-ring" aria-hidden="true"></span>
+  </div>
+
+  <div class="body">
+    <h3 class="title">{{ m.title }}</h3>
+    <p class="desc">{{ m.description }}</p>
+  </div>
+
+  <div class="meta">
+    <div class="tags">
+      @for (tag of m.tags; track tag) {
+        <span class="tag">{{ tag }}</span>
+      }
+    </div>
+    @if (!m.disabled) {
+      <span class="cta" aria-hidden="true">
+        Play
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 3l6 5-6 5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    }
+  </div>
+</a>

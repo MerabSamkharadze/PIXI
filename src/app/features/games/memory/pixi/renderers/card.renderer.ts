@@ -22,6 +22,7 @@ export class CardRenderer {
   ) {
     this.view.eventMode = 'static';
     this.view.cursor = 'pointer';
+    this.view.pivot.set(size / 2, size / 2);
     this.view.on('pointertap', () => this.onClick(this.card.id));
     this.view.on('pointerover', () => this.hover(true));
     this.view.on('pointerout', () => this.hover(false));
@@ -50,7 +51,8 @@ export class CardRenderer {
   }
 
   setPosition(x: number, y: number): void {
-    this.view.position.set(x, y);
+    // pivot is centered, so the slot's top-left maps to (x + size/2, y + size/2)
+    this.view.position.set(x + this.size / 2, y + this.size / 2);
   }
 
   /** called from the ticker; progress 0..1 toward target visibility */
@@ -62,8 +64,6 @@ export class CardRenderer {
       Math.abs(target - this.flipProgress) <= speed * deltaMs ? target : next
     );
     const scaleX = Math.abs(Math.cos(this.flipProgress * Math.PI));
-    this.view.pivot.set(this.size / 2, this.size / 2);
-    this.view.position.x += this.size / 2 - this.view.pivot.x;
     this.face.visible = this.flipProgress > 0.5;
     this.back.visible = this.flipProgress <= 0.5;
     this.label.alpha = this.flipProgress > 0.5 ? (this.flipProgress - 0.5) * 2 : 0;

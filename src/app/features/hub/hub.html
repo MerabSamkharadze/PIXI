@@ -1,0 +1,44 @@
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span class="eyebrow-line"></span>
+    <span>WebGL · Arcade · Edition 01</span>
+  </div>
+
+  <h1 class="hero-title">
+    Pick your <span class="grad-text">game</span>.
+  </h1>
+
+  <p class="hero-sub">
+    A hand-crafted collection of small games rendered with PixiJS. Lazy-loaded,
+    isolated, GPU-fast — the way browser games should feel in 2026.
+  </p>
+
+  <div class="hero-meta">
+    <div class="meta-pill">
+      <span class="meta-num">{{ liveCount() }}</span>
+      <span class="meta-label">live</span>
+    </div>
+    <div class="meta-divider"></div>
+    <div class="meta-pill muted">
+      <span class="meta-num">{{ totalCount }}</span>
+      <span class="meta-label">total</span>
+    </div>
+    <div class="meta-divider"></div>
+    <div class="meta-pill muted">
+      <span class="meta-num">∞</span>
+      <span class="meta-label">scalable</span>
+    </div>
+  </div>
+</section>
+
+<section class="grid" aria-label="Games">
+  @for (g of games; track g.manifest.id) {
+    <mg-game-card [manifest]="g.manifest" />
+  }
+</section>
+
+<footer class="hub-footer">
+  <span>Built with Angular 21 · PixiJS v8</span>
+  <span class="footer-dot">•</span>
+  <span>Add a new game in &lt;15 minutes</span>
+</footer>

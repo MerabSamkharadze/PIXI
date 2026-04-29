@@ -1,1 +1,21 @@
-<router-outlet />
+<nav class="app-nav">
+  <a routerLink="/" class="brand" aria-label="PIXI Arcade — home">
+    <span class="brand-mark" aria-hidden="true">
+      <span class="dot dot-violet"></span>
+      <span class="dot dot-cyan"></span>
+      <span class="dot dot-green"></span>
+    </span>
+    <span class="brand-name">PIXI<span class="brand-sep">·</span>ARCADE</span>
+  </a>
+
+  <div class="nav-meta">
+    <span class="status">
+      <span class="pulse"></span>
+      online
+    </span>
+  </div>
+</nav>
+
+<main class="app-main">
+  <router-outlet />
+</main>
