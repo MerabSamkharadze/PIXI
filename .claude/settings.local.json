@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Move-Item *)",
+      "Bash(npm install *)",
+      "Bash(npx ng *)"
+    ]
+  }
+}
