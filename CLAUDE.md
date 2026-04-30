@@ -1,91 +1,107 @@
-# PIXI Arcade — Project Brain
+# PIXI Arcade — პროექტის სრული გზამკვლევი
 
-> Single source of truth for any AI session entering this repository. Read top-to-bottom before making changes.
-
----
-
-## 1. Project Vision
-
-A scalable **multi-game web platform** where each game is a self-contained PixiJS WebGL experience hosted inside an Angular shell.
-
-The platform-level concerns (routing, lifecycle, dashboard, asset pipeline, scoring) are shared. Each individual game is plug-and-play behind a single abstraction (`BasePixiGame`) so that adding the 51st game costs the same as adding the 2nd.
-
-**Non-goals:** SSR, mobile-native packaging, multiplayer/network sync (not in current scope).
+> ერთიანი წყარო ყველა AI სესიისთვის, რომელიც ამ რეპოზიტორიას შემოსძრომს. ცვლილებების შეტანამდე ბოლომდე უნდა წაიკითხო.
 
 ---
 
-## 2. Tech Stack
+## 1. პროექტის ხედვა
 
-| Layer | Tech | Notes |
+ეს არის **მრავალთამაშიანი ვებ-პლატფორმა**, სადაც თითოეული თამაში დამოუკიდებელი PixiJS WebGL გამოცდილებაა, რომელიც Angular-ის შელის შიგნით ცხოვრობს.
+
+**პლატფორმის დონის ცნებები** (routing, lifecycle, dashboard, asset pipeline, scoring) საერთოა ყველა თამაშისთვის. თითოეული თამაში plug-and-play რეჟიმშია ერთი აბსტრაქციის (`BasePixiGame`) უკან — 51-ე თამაშის დამატებას იგივე დრო დასჭირდება, რაც მე-2-ს.
+
+**პროექტის სამიზნე არ არის:** SSR, mobile-native აპლიკაცია, multiplayer / ქსელური სინქრონიზაცია.
+
+ამჟამად პროექტში **6 სრული თამაშია:** Memory · Snake · Puzzle · Blocks (Tetris-style) · Breakout · The Lab (ფიზიკური თავსატეხი).
+
+---
+
+## 2. ტექნოლოგიური სტეკი — რა რისთვის გამოიყენება
+
+| ფენა | ტექნოლოგია | რისთვის |
 |---|---|---|
-| Framework | **Angular 21.2** | Standalone components only — no NgModules. Signals are the primary reactive primitive. |
-| Rendering | **PixiJS v8.18** | WebGL renderer, `Application` per route. Init is async (`await app.init()`). |
-| Pixi effects | **pixi-filters 6.1** | `GlowFilter` used by Snake (head + food orb). Other filters available; see §3.4 for destroy rules. |
-| Reactive | **Angular signals** + RxJS 7.8 | Signals own state. RxJS available for stream-style flows but is **not** the default state primitive. |
-| Routing | `@angular/router` | Lazy via `loadComponent`. Routes generated from the registry — see §4. |
-| Build | `@angular/build` (esbuild) | `npx ng build` / `npx ng serve`. |
-| Test | `vitest` 4.0 | Wired but no suites yet. |
-| Tooling | Prettier 3.8, TypeScript 5.9 | `.prettierrc` at root. |
-| Env | Windows · PowerShell · WebStorm | Bash also available; prefer forward slashes in paths. |
+| Framework | **Angular 21.2** | UI-ფენის სკელეტი. **Standalone components** მხოლოდ — NgModules არ გამოიყენება. **Signals** არის რეაქტიული პრიმიტივი. |
+| Rendering | **PixiJS v8.18** | WebGL რენდერინგი. თითო თამაშისთვის თითო `Application`. ინიციალიზაცია ასინქრონულია (`await app.init()`). |
+| Pixi ეფექტები | **pixi-filters 6.1** | `GlowFilter` ბრწყინვის ეფექტისთვის (Snake-ის თავი/საკვები, ბურთები, Bombo-ს ცეცხლი). სხვა ფილტრებიც ხელმისაწვდომია. |
+| რეაქტიულობა | **Angular signals** + RxJS 7.8 | Signals — მთავარი state primitive. RxJS — stream-სტილის flow-ებისთვის (router events, async pipelines), მაგრამ **არ არის** ნაგულისხმევი state-ის შენახვის გზა. |
+| Routing | `@angular/router` | Lazy loading `loadComponent`-ით. Routes ავტომატურად გენერირდება registry-დან (იხ. §4). |
+| Build | `@angular/build` (esbuild) | `npx ng build` / `npx ng serve`. სწრაფი esbuild-ბექენდი. |
+| Test | `vitest` 4.0 | მზადაა, მაგრამ ჯერ ტესტები არ დაწერილა. |
+| Tooling | Prettier 3.8, TypeScript 5.9 | `.prettierrc` რეპოს ფესვშია. `strict: true`. |
+| გარემო | Windows · PowerShell · WebStorm | Bash-ი ხელმისაწვდომია; პრეფერენცია — forward slash-ი ბილიკებში. |
+
+### ბიბლიოთეკების ფუნქცია უფრო დეტალურად
+
+**PixiJS v8** — ეს არის ჩვენი მთავარი ხელსაწყო თამაშების ვიზუალური მხარისთვის:
+- `Application` — root WebGL canvas. ყოველ თამაშს თავისი აქვს.
+- `Container` — სცენის გრაფის კვანძი. ნებისმიერი ჯგუფი — Container-ი.
+- `Graphics` — ვექტორული ფიგურები (`circle`, `roundRect`, `moveTo/lineTo`).
+- `Text` — ტექსტი (HUD-ის დანახვადი ნაწილი არ — DOM-ი ჯობია).
+- `Ticker` — frame loop, deltaMS-ით. გამოვიყენებთ თითო თამაშში ერთხელ.
+- `Sprite` — სამომავლოდ asset pipeline-ისთვის (ჯერ არ გამოვიყენებთ).
+
+**pixi-filters** — დამატებითი ფილტრები PixiJS-ზე. ძირითადად `GlowFilter` ვიყენებთ ბრწყინვის ეფექტისთვის. **მნიშვნელოვანია:** ფილტრები **Container.destroy()**-ზე ავტომატურად არ ნადგურდება, ცალკე უნდა გამოიძახო `filter.destroy()` (იხ. §6).
+
+**Angular signals** — რეაქტიული მდგომარეობა. ყოველი თამაშის `GameStateService`-ი მთლიანად სიგნალებზეა აშენებული:
+- `signal<T>(initial)` — წერვადი
+- `computed(() => ...)` — წარმოებული მნიშვნელობები (auto-update)
+- `effect(() => ..., { injector })` — გვერდითი ეფექტები (renderer-ის სინქრონიზაცია)
+
+**RxJS** — გვაქვს, მაგრამ ცოტა ვიყენებთ. ძირითადად router-ის ნაკადებისთვის და async ოპერაციებისთვის.
 
 ---
 
-## 3. Architecture Rules
+## 3. არქიტექტურა — ფენების საზღვრები
 
-These are **load-bearing**. Violating them cascades.
-
-### 3.1 Layer boundaries
+ეს წესები **საფუძველმდებარეა**. დარღვევას ჯაჭვური ეფექტი აქვს.
 
 ```
 ┌─────────────────────────────────────────────┐
-│  Angular Shell (DOM/HUD)  ─── Smart/Dummy   │
+│  Angular Shell (DOM/HUD)  ─── Smart/Dummy   │  ← ფენა 1
 ├─────────────────────────────────────────────┤
-│  BasePixiGame  ─── lifecycle contract       │
+│  BasePixiGame  ─── lifecycle contract       │  ← ფენა 2
 ├─────────────────────────────────────────────┤
-│  Pixi renderers (Container, Graphics, ...)  │
+│  Pixi renderers (Container, Graphics, ...)  │  ← ფენა 3
 ├─────────────────────────────────────────────┤
-│  Domain (rules + state)  ─── pure TS        │
+│  Domain (rules + state)  ─── pure TS        │  ← ფენა 4
 └─────────────────────────────────────────────┘
 ```
 
-- **`domain/` MUST NOT import from `pixi.js` or any renderer.** It is the testable core. If you find yourself reaching for a `Container` here, stop.
-- **Pixi renderers MUST NOT mutate state.** They observe it (via signal `effect()`) and translate it to visuals. Clicks/keys fire callbacks the renderer or input class received in its constructor — they do not call `state.set(...)` directly.
-- **Angular components MUST NOT call PixiJS directly.** They wire services and host the canvas. The `BasePixiGame` subclass is the only thing that owns Pixi objects.
+### 3.1 ფენების მთავარი წესები
 
-### 3.2 Smart / Dummy components
+- **`domain/` არასოდეს არ უნდა ჩაიცვას `pixi.js`-დან.** ეს არის ტესტირებადი ბირთვი — სუფთა TypeScript. თუ აქ Container-ის გამოყენება გინდა — შეჩერდი.
+- **Pixi renderer-ი არასოდეს არ უნდა ცვლიდეს state-ს.** ის მხოლოდ ხედავს state-ს (signal-ის `effect()`-ით) და გადააქცევს მას ვიზუალურ ფორმაში. ღილაკები იხსნება იმ callback-ებით, რომლებიც renderer-მა კონსტრუქტორში მიიღო — არასოდეს უშუალოდ `state.set(...)` არ გამოიძახოს.
+- **Angular კომპონენტი არასოდეს არ უნდა ეხებოდეს PixiJS-ს უშუალოდ.** ის მხოლოდ სერვისებს მართავს და canvas-ს მასპინძლობს. `BasePixiGame`-ის შვილი კლასია ერთადერთი, რომელიც PIXI ობიექტებს ფლობს.
 
-- **Smart** (e.g. `MemoryShell`, `SnakeShell`, `HubComponent`) — inject services, hold a `viewChild` on the canvas host, orchestrate lifecycle, react to resize.
-- **Dummy** (e.g. `HudComponent`, `WinModalComponent`, `GameCardComponent`) — `input.required<T>()` / `output<T>()` only, `ChangeDetectionStrategy.OnPush`, no service injection.
+### 3.2 Smart / Dummy კომპონენტები
 
-### 3.3 BasePixiGame contract
+ჩვენ ვიცავთ **Smart / Dummy** დაყოფას:
 
-`src/app/core/game/base-pixi-game.ts`
+- **Smart კომპონენტი** (მაგ. `MemoryShell`, `SnakeShell`, `HubComponent`) — `inject()`-ით სერვისებს იღებს, `viewChild`-ით canvas-ს სდევს, lifecycle-ს მართავს, resize-ს რეაგირებს. **ბიზნეს-ლოგიკა აქ არ ცხოვრობს** — მხოლოდ ორქესტრაცია.
+
+- **Dummy კომპონენტი** (მაგ. `HudComponent`, `WinModalComponent`, `GameCardComponent`) — მხოლოდ `input.required<T>()` და `output<T>()`. `ChangeDetectionStrategy.OnPush`. სერვისს არ inject-ობს. **წმინდა ფუნქცია input-დან DOM-მდე.**
+
+### 3.3 BasePixiGame-ის კონტრაქტი
+
+ფაილი: `src/app/core/game/base-pixi-game.ts`
 
 ```ts
 abstract class BasePixiGame {
   abstract readonly id: string;
   protected ctx!: GameContext;   // app, stage, width, height, injector
-  protected root!: Container;    // game's own root inside ctx.stage
+  protected root!: Container;    // ამ თამაშის ძირი ctx.stage-ის შიგნით
 
   async mount(ctx: GameContext): Promise<void>;  // template method
   protected abstract init(): Promise<void> | void;
   abstract resize(width: number, height: number): void;
   protected abstract onDestroy(): void;
-  destroy(): void;               // wraps onDestroy() + root.destroy({ children: true })
+  destroy(): void;               // onDestroy() + root.destroy({ children: true })
 }
 ```
 
-Every game implements `init` / `resize` / `onDestroy`. The base class guarantees the `root` container is added to the stage before `init()` runs and destroyed after `onDestroy()` returns.
+ყოველი თამაში ახდენს `init / resize / onDestroy`-ის implement-ს. ბაზური კლასი იძლევა გარანტიას, რომ `root` Container უკვე stage-ზე იქნება დამატებული `init()`-ის გამოძახებამდე და გასუფთავდება `onDestroy()`-ის შემდეგ.
 
-### 3.4 Memory management (strict)
-
-- Every `new` of a `Container`, `Graphics`, `Text`, `Ticker`, `Sprite` — **must** have a matching `.destroy()` reachable from the game's `onDestroy()`. No orphans.
-- **Filters are NOT destroyed by `Container.destroy({ children: true })`.** When a renderer creates `new GlowFilter(...)`, it **must** call `filter.destroy()` in its own `destroy()`. This is currently a known bug in Snake (`snake.renderer.ts`, `food.renderer.ts`) — see §5 TODO list.
-- `EffectRef` returned by `effect({ injector })` must be destroyed in `onDestroy()`. Otherwise the effect leaks into the next route.
-- `GameEngineService.destroy()` calls `app.destroy(true, { children: true, texture: false })` — note `texture: false` because the asset pipeline (future) will own the texture cache across navigations.
-- Per-route engine: `GameEngineService` is provided **at the shell component level**, not root. Leaving the route → DI scope torn down → `destroy()` runs.
-
-### 3.5 Bridge pattern (state ↔ visuals)
+### 3.4 Bridge pattern — state-ი ↔ ვიზუალი
 
 ```
 GameStateService  ─── signals
@@ -95,32 +111,48 @@ GameStateService  ─── signals
 BoardRenderer  ─── Pixi Container tree
 ```
 
-State changes flow one way: Pixi/keyboard → callback → rules service → signal `update` → effect → renderer diff. Renderers never own state.
+State-ის ცვლილება მუდამ ერთი მიმართულებით მიდის:
 
-### 3.6 Per-frame rendering pattern (draw-once, transform-only)
+```
+Pixi/keyboard event → callback → rules service → signal update → effect → renderer diff
+```
 
-For renderers that update every frame (`tick()` / `render()` driven by `Ticker`):
+Renderer-ი არასოდეს არ ფლობს state-ს. ის მხოლოდ ეცემა state-ის ცვლილებას და ვიზუალურად გამოიყვანს მას.
 
-- **Draw geometry once.** `g.clear()` + `g.roundRect(...).fill(...)` should run only when the underlying state changes (size/color/orientation/visibility), NOT every frame.
-- **Per frame, mutate transforms only:** `position`, `scale`, `rotation`, `alpha`, `visible`. These are cheap GPU uploads.
-- **Track "drawn state" per object** if the geometry depends on multiple inputs that may change independently. See `snake.renderer.ts:13-19` (`SegmentState`) for the canonical pattern: store last-drawn `size` / `isHead` / `dir` / `squash`, redraw only on change.
-- **Reference implementation:** Memory's `card.renderer.ts` — `tick()` (lines 83-95) only mutates transforms; `draw()` is called on `setState()` / `setSize()`.
+### 3.5 Domain-ი — წმინდა TypeScript
 
-Violating this: 30 segments × 60fps = 1800 GraphicsContext rebuilds/sec for nothing. Mobile devices feel it immediately.
+`domain/` ფოლდერი — სუფთა ბიზნეს-ლოგიკა, ყოველგვარი UI / Pixi-ს გარეშე:
+- `models/` — `interface`, `type`, ცხრილები (მაგ. `DELTA`, `OPPOSITE`, `SHAPES`).
+- `state/` — `GameStateService` სიგნალებით.
+- `services/` — `GameEngineService` (წესები) + helper-ები (`shuffler`, `food-spawner`, `physics`, `tetromino-bag`).
+
+ეს ფენა **ცარიელ Node.js გარემოში მუშაობს** — Pixi/Angular DOM-ის გარეშე. სრულად ტესტირებადი.
+
+### 3.6 Per-frame რენდერინგის შაბლონი (draw-once, transform-only)
+
+ეს არის ერთ-ერთი **ყველაზე მნიშვნელოვანი წარმადობის წესი** (Snake-ის რეფაქტორიდან მიღებული გაკვეთილი):
+
+- **გეომეტრია ერთხელ დახატე.** `g.clear()` + `g.roundRect(...).fill(...)` უნდა გაიშვას მხოლოდ მაშინ, როცა state რეალურად შეიცვალა (size / color / orientation), **არა ყოველ ფრეიმზე**.
+- **ფრეიმში ცვლი მხოლოდ transform-ებს:** `position`, `scale`, `rotation`, `alpha`, `visible`. ეს არის იაფი GPU upload-ი.
+- **თუ გეომეტრია რამდენიმე input-ზეა დამოკიდებული** — შეინახე "drawn state" ცალკე და მხოლოდ ცვლილებაზე გადახატე. იხილე `snake.renderer.ts:13-19` (`SegmentState`) კანონიკური მაგალითი.
+
+**წესის დარღვევა:** 30 segment-ი × 60fps = 1800 GraphicsContext rebuild-ი წამში. მობილური მოწყობილობა მაშინვე ხედავს.
 
 ### 3.7 Registry-driven scalability
 
-`src/app/games-config.ts` is the **only** file that lists games. The Hub catalog reads it; routes are generated from it. Adding a game in two places (catalog + routes) is forbidden — there is one place.
+`src/app/games-config.ts` — **ერთადერთი ფაილი**, რომელიც თამაშებს ჩამოთვლის. Hub კატალოგი მისგან კითხულობს, route-ები ავტომატურად გენერირდება. ორ ადგილას ჩაწერა (კატალოგი + routes) აკრძალულია — **ერთი ადგილია**.
 
-`GameManifest.disabled?: boolean` marks placeholder entries — they appear in the Hub (greyed) but are not routable.
+`GameManifest.disabled?: boolean` ანიშნებს placeholder-ს — ჩანს Hub-ში (გაჩუმებული), მაგრამ route-ად არ ხელმისაწვდომია.
 
 ### 3.8 Responsive / breakpoint pattern
 
-`src/app/core/responsive/breakpoint.ts` defines a single `LayoutMode = 'mobile' | 'desktop'` with `MOBILE_BREAKPOINT = 768`. Every game ships **two configs** (`DESKTOP_CONFIG`, `MOBILE_CONFIG`) and a `pickXxxConfig(viewportWidth)` helper. The shell calls this on boot and on `ResizeObserver` events. **All breakpoint logic flows through `getLayoutMode()` — do not hard-code 768 elsewhere.**
+`src/app/core/responsive/breakpoint.ts` განსაზღვრავს ერთიან `LayoutMode = 'mobile' | 'desktop'` 768px ზღვარით. ყოველი თამაში აწვდის **ორ კონფიგურაციას** (`DESKTOP_CONFIG`, `MOBILE_CONFIG`) და `pickXxxConfig(viewportWidth)` დამხმარე ფუნქციას. Shell-ი ამას იძახებს boot-ზე და ResizeObserver-ის event-ებზე.
+
+**ყველა breakpoint ლოგიკა მიდის `getLayoutMode()`-ზე.** არსად სხვაგან 768 hard-coded არ უნდა იყოს.
 
 ---
 
-## 4. Project Structure
+## 4. პროექტის სტრუქტურა
 
 ```
 src/
@@ -128,272 +160,527 @@ src/
 ├── main.ts
 ├── index.html
 └── app/
-    ├── app.ts / app.html / app.scss     # root shell (router-outlet)
-    ├── app.routes.ts                    # generated from games-config
+    ├── app.ts / app.html / app.scss     # ძირი (router-outlet)
+    ├── app.routes.ts                    # auto-generated from games-config
     ├── app.config.ts
-    ├── app.spec.ts
     ├── games-config.ts                  # 📋 single source of truth
     │
-    ├── core/                            # platform-level abstractions
+    ├── core/                            # პლატფორმის დონის აბსტრაქციები
     │   ├── game/
     │   │   ├── game.types.ts            # GameManifest, GameContext, GameRegistration
-    │   │   ├── base-pixi-game.ts        # abstract class for all games
+    │   │   ├── base-pixi-game.ts        # აბსტრაქტული კლასი ყველა თამაშისთვის
     │   │   └── game-engine.service.ts   # PIXI.Application lifecycle (per route)
     │   └── responsive/
-    │       └── breakpoint.ts            # LayoutMode, MOBILE_BREAKPOINT, getLayoutMode
+    │       └── breakpoint.ts            # LayoutMode, getLayoutMode
     │
     ├── features/
-    │   ├── hub/                         # dashboard
-    │   │   ├── hub.ts                   # smart: lists games from registry
-    │   │   ├── hub.scss
-    │   │   └── ui/
-    │   │       ├── game-card.ts         # dummy: hover-lift card with --accent
-    │   │       └── game-card.scss
+    │   ├── hub/                         # მთავარი dashboard
+    │   │   ├── hub.ts
+    │   │   └── ui/game-card.ts
     │   │
-    │   └── games/
-    │       ├── memory/                  # 4×4 card-match
-    │       │   ├── memory.shell.ts
-    │       │   ├── memory-game.ts       # MemoryGame extends BasePixiGame
-    │       │   ├── domain/              # NO PIXI IMPORTS
-    │       │   │   ├── models/
-    │       │   │   │   ├── card.model.ts
-    │       │   │   │   └── game-config.model.ts  # DESKTOP_/MOBILE_CONFIG, pickMemoryConfig
-    │       │   │   ├── state/game-state.service.ts
-    │       │   │   └── services/
-    │       │   │       ├── game-engine.service.ts  # rules (flip/match/win)
-    │       │   │       └── shuffler.ts
-    │       │   ├── pixi/renderers/
-    │       │   │   ├── board.renderer.ts
-    │       │   │   └── card.renderer.ts          # ⭐ canonical draw-once pattern
-    │       │   └── ui/
-    │       │       ├── hud.ts
-    │       │       ├── win-modal.ts / .html / .scss
-    │       │
-    │       └── snake/                   # arcade reflex game
-    │           ├── snake.shell.ts
-    │           ├── snake-game.ts        # SnakeGame extends BasePixiGame
-    │           ├── domain/              # NO PIXI IMPORTS
-    │           │   ├── models/
-    │           │   │   ├── snake.model.ts          # Cell, Direction, GameStatus, DELTA, OPPOSITE
-    │           │   │   └── snake-config.model.ts   # DESKTOP_/MOBILE_CONFIG, pickSnakeConfig, boardPixelSize
-    │           │   ├── state/game-state.service.ts # signals + localStorage best score
-    │           │   └── services/
-    │           │       ├── game-engine.service.ts  # rules (tick, eat, collide, pause)
-    │           │       └── food-spawner.ts
-    │           ├── pixi/
-    │           │   ├── renderers/
-    │           │   │   ├── arena.renderer.ts       # static board background + grid
-    │           │   │   ├── snake.renderer.ts       # ⭐ SegmentState draw-once pattern
-    │           │   │   ├── food.renderer.ts       # GlowFilter orb + emoji label
-    │           │   │   ├── particle.renderer.ts   # pooled burst particles (prewarmed)
-    │           │   │   ├── score-popup.renderer.ts # rising "+10" text
-    │           │   │   └── flash.renderer.ts       # red flash on death
-    │           │   └── input/
-    │           │       ├── keyboard-input.ts       # arrows + WASD + space/P/Esc
-    │           │       └── swipe-input.ts          # touch swipe (pointerdown/up)
-    │           └── ui/
-    │               ├── hud.ts                      # score, length/target, best, speed bars, pause/restart
-    │               ├── win-modal.ts / .html / .scss
-    │               └── game-over-modal.ts / .html / .scss
+    │   └── games/                       # თითო თამაში — თითო ფოლდერი
+    │       ├── memory/                  # 4×4 ბარათების ასორტი
+    │       ├── snake/                   # კლასიკური გველი
+    │       ├── puzzle/                  # 15-სლაიდი თავსატეხი
+    │       ├── blocks/                  # Tetris-სტილის ფიგურები
+    │       ├── breakout/                # ბურთი + paddle + ბრიკები + power-ups
+    │       └── lab/                     # 12 ფიზიკური ექსპერიმენტი
     │
-    └── shared/                          # (future) reusable UI primitives
+    └── shared/                          # (მომავალი) reusable UI primitives
 ```
 
-### Adding a new game (recipe)
+### თითო თამაშის სტანდარტული ლეიაუტი
 
-1. Create `features/games/<id>/` mirroring the snake/memory layout.
-2. Implement `<Id>Game extends BasePixiGame` in `<id>-game.ts`.
-3. Implement `<Id>Shell` Angular component (smart) that providers the game's services, instantiates the Pixi class, and wires `ResizeObserver`.
-4. Provide `DESKTOP_CONFIG` + `MOBILE_CONFIG` + `pick<Id>Config(viewportWidth)` in `domain/models/<id>-config.model.ts`. Import `getLayoutMode` from `core/responsive/breakpoint`.
-5. Append one entry to `src/app/games-config.ts`:
+```
+features/games/<id>/
+├── <id>.shell.ts                # Smart Angular კომპონენტი (route entry)
+├── <id>-game.ts                 # BasePixiGame შვილი
+├── domain/
+│   ├── models/                  # 🚫 NO PIXI IMPORTS
+│   │   ├── *.model.ts           # ტიპები / interface-ები
+│   │   └── <id>-config.model.ts # DESKTOP/MOBILE configs + pickXxxConfig
+│   ├── state/
+│   │   └── game-state.service.ts   # signals store
+│   └── services/
+│       ├── game-engine.service.ts  # წესები (rules)
+│       └── *.ts                    # helpers (shuffler, physics, bag, etc.)
+├── pixi/
+│   ├── renderers/
+│   │   └── *.renderer.ts        # ვიზუალური მხარე
+│   └── input/
+│       └── *-input.ts           # keyboard / pointer / swipe adapters
+└── ui/
+    ├── hud.ts                   # Dummy: HUD ჯგუფი (DOM)
+    ├── *-modal.ts/.html/.scss   # modal components
+    └── ...
+```
+
+### როგორ ვამატებ ახალ თამაშს — რეცეპტი
+
+1. შექმენი `features/games/<id>/` — Memory/Snake-ის შაბლონით.
+2. იმპლემენტი `<Id>Game extends BasePixiGame`-ი `<id>-game.ts`-ში.
+3. იმპლემენტი `<Id>Shell` (Smart Angular კომპონენტი) — providers, ResizeObserver.
+4. დაწერე `DESKTOP_CONFIG` + `MOBILE_CONFIG` + `pick<Id>Config(viewportWidth)` `domain/models/<id>-config.model.ts`-ში. იმპორტი `getLayoutMode` `core/responsive/breakpoint`-დან.
+5. დაამატე ერთი ჩანაწერი `src/app/games-config.ts`-ში:
    ```ts
    {
-     manifest: { id: 'tetris', title: 'Blocks', description: '...', thumbnail: '🟦', tags: [...], accent: '#ec4899' },
-     loadShell: () => import('./features/games/tetris/tetris.shell').then(m => m.TetrisShell)
+     manifest: { id: 'newgame', title: 'New', description: '...', thumbnail: '🎯', tags: [...], accent: '#22d3ee' },
+     loadShell: () => import('./features/games/newgame/newgame.shell').then(m => m.NewGameShell)
    }
    ```
-6. Done. Hub picks it up, route is generated, lazy chunk is auto-split.
+6. **დასრულდა.** Hub ავტომატურად აიღებს, route გენერირდება, lazy chunk ცალკე იქნება split-ი.
 
 ---
 
-## 5. Current Progress
+## 5. Design Patterns და კოდის პრინციპები
 
-**Status: foundation laid. Hub + Memory + Snake wired end-to-end.**
+### 5.1 Bridge — domain და renderer-ის კავშირი
 
-### Done
+ჩვენი მთავარი შაბლონი. State-ი ცხოვრობს signals-ში, renderer წვდება მას `effect()`-ით:
 
-| Item | Status |
-|---|---|
-| `BasePixiGame` abstraction | ✅ |
-| Core `GameEngineService` (Application lifecycle) | ✅ |
-| `games-config.ts` registry + `disabled` placeholder support | ✅ |
-| Lazy-loaded route generation | ✅ (chunks: `hub`, `memory-shell`, `snake-shell`) |
-| Hub dashboard (dark UI, hover, --accent per game) | ✅ |
-| Design system tokens in `styles.scss` (neon palette, motion easings, typography) | ✅ |
-| Responsive: `breakpoint.ts` + per-game mobile/desktop configs | ✅ |
-| `ResizeObserver` wired in shells, routed through `GameEngineService.resize()` | ✅ |
-| **Memory** — domain (state, rules, shuffler) | ✅ |
-| **Memory** — Pixi renderers (board, card with manual flip tween) | ✅ |
-| **Memory** — HUD (moves, pairs, restart) + win modal with star rating | ✅ |
-| **Memory** — refactored to extend `BasePixiGame` | ✅ |
-| **Snake** — domain (state, rules, food-spawner, models) | ✅ |
-| **Snake** — Pixi renderers (arena, snake with SegmentState, food, particle, popup, flash) | ✅ |
-| **Snake** — keyboard + swipe input | ✅ |
-| **Snake** — HUD (score, length, best, speed bars, pause) + win + game-over modals | ✅ |
-| **Snake** — `GlowFilter` glow effects on head + food | ✅ |
-| **Snake** — wrap-around board + interpolated movement + squash + death cascade | ✅ |
-| **Snake** — persistent best score (localStorage) | ✅ |
-| **Snake** — perf pass (draw-once segments, particle prewarm, shake dirty flag) | ✅ |
-| `pixi-filters` integrated | ✅ |
+```ts
+// memory-game.ts (მაგალითი)
+this.effectRef = effect(() => {
+  const cards = this.state.cards();
+  if (cards.length) board.syncCards(cards);
+}, { injector: this.injector });
+```
 
-### Not yet
+State-ის ცვლილებაზე `effect`-ი ფიქსდება და renderer-ი თავის ვიზუალს აკორექტირებს. **ცალმხრივი ნაკადი.**
 
-| Item | Status |
-|---|---|
-| Asset pipeline (`AssetLoaderService` + manifest preload) | ⛔ — both games use `Text` emoji placeholders |
-| GSAP integration | ⛔ — manual `sin/cos`-based tweens in both games |
-| Sound layer | ⛔ |
-| **Global** highscore service (cross-game, manifest-driven metrics) | ⛔ — Snake has its own localStorage key; no shared service |
-| Tests | ⛔ |
-| Shared UI primitives (`shared/` button, modal, panel) | ⛔ |
-| Asset preload before `app.init()` | ⛔ |
-| Hub: filter/search by tag | ⛔ |
-| Profile / progress persistence (IndexedDB) | ⛔ |
+### 5.2 Strategy — Input adapter-ები
 
-### Known issues / tech debt
+თითოეული input modality (კლავიატურა, swipe, pointer) თავისი კლასია:
 
-1. **GlowFilter leak** — `snake.renderer.ts:23` and `food.renderer.ts:17` create `new GlowFilter(...)` but never call `filter.destroy()`. Each Hub→Snake→Hub navigation leaks a filter. **Fix priority: high.**
-2. **`hslToHex` duplicated** in `snake-game.ts` and `food.renderer.ts`. Should extract to `core/util/color.ts`.
-3. **Snake `resize()` resets score mid-game** (`snake-game.ts:138-152`). When viewport crosses the breakpoint during play, `rules.start(next)` is called, wiping score and length. Should re-layout only, not restart.
-4. **Two `GameEngineService` classes** — one in `core/game/` (PIXI lifecycle), one inside each game's `domain/services/` (rules). Forces aliasing at every import site (`as RulesService` / `as MemoryRulesService`). Cleaner: rename per-game services to `<Id>RulesService`.
-5. **`KeyboardInput` listens on `window` and always `preventDefault`s** — will hijack arrows from any future input field on the page. Should bail when `e.target` is editable.
-6. **Snake HUD `Pause` button stays clickable on `lost`/`won`** — should disable; the rules service correctly ignores it but the affordance is wrong.
-7. **Snake `ScorePopupRenderer` is single-slot** — fast successive eats overwrite the previous popup. Should queue.
+```
+KeyboardInput → callbacks → rules service
+SwipeInput    → callbacks → rules service
+PointerInput  → callbacks → rules service
+```
+
+Game-class-ი მხოლოდ ერთხელ ქმნის ყველა adapter-ს და callback-ებს უფარდებს `rules.method()`-ს. რეცეპტი ერთიანია.
+
+### 5.3 Pool / Object reuse
+
+ყოველ თამაშში, რომელიც ნაწილაკებს ხატავს, ვიყენებთ `ParticleRenderer` pool-ს:
+- `prewarm(count)` — boot-ზე უნდა გამოვიძახოთ, რომ პირველი ნაწილაკი არ გამოიწვიოს ფრეიმის ჩავარდნა.
+- `acquire()` / `release()` — გამოყენებული Graphics-ი ცარიელდება და უკან pool-ში ბრუნდება.
+
+### 5.4 Template Method — BasePixiGame.mount
+
+ბაზური კლასი განსაზღვრავს `mount()` ალგორითმს და შვილებზე ტოვებს `init / resize / onDestroy` "ნახვრეტებს":
+
+```ts
+async mount(ctx: GameContext): Promise<void> {
+  this.ctx = ctx;
+  this.root = new Container();
+  ctx.stage.addChild(this.root);
+  await this.init();
+  this.resize(ctx.width, ctx.height);
+}
+```
+
+ყოველი თამაშის შვილი იცვლის ნახვრეტებს, ბაზური კლასი — ჩარჩოს.
+
+### 5.5 Registry — Configuration as Data
+
+`games-config.ts` არის **მონაცემი, არა კოდი**. ის აღწერს ყველა თამაშს უხეშად: `id`, `title`, `accent`, `loadShell`. ეს შესაძლებელს ხდის `app.routes.ts`-ის ავტო-გენერაციას + Hub-ის ავტო-შევსებას.
 
 ---
 
-## 6. Naming Conventions & Workflow
+## 6. მეხსიერების მართვა — მკაცრი წესები
 
-### File names
+PixiJS-ს არ აქვს automatic GC GPU რესურსებზე. მახსოვრობის ნაკადები **გრძელდება საათებს**, თუ წესებს არ დაიცავ.
 
-- Lowercase, dash-separated: `memory-game.ts`, `game-engine.service.ts`, `score-popup.renderer.ts`.
-- Suffix conveys role:
+### 6.1 ყოველი `new` უნდა შეესაბამოს `destroy()`-ს
+
+ყოველი `new Container()`, `new Graphics()`, `new Text()`, `new Ticker()`, `new Sprite()` — **უნდა ჰქონდეს შესაბამისი `.destroy()` გამოძახება**, რომელიც მიწვდომადი იქნება თამაშის `onDestroy()`-დან.
+
+### 6.2 ფილტრები ცალკე უნდა განადგურდეს
+
+```ts
+// ❌ ცუდი — GlowFilter ნადგურდება, მაგრამ filter არა
+this.view.filters = [new GlowFilter(...)];
+this.view.destroy({ children: true });
+```
+
+```ts
+// ✅ კარგი
+private readonly glow: GlowFilter;
+constructor() {
+  this.glow = new GlowFilter(...);
+  this.view.filters = [this.glow];
+}
+destroy(): void {
+  this.view.filters = null;
+  this.glow.destroy();
+  this.view.destroy({ children: true });
+}
+```
+
+`Container.destroy({ children: true })` **არ ანადგურებს ფილტრებს**. ეს უკვე გასწორდა Snake / Lab თამაშებში; შემდეგი თამაშების წერისას ეს გახსოვდეს.
+
+### 6.3 EffectRef-ებიც ცალკე უნდა მოგვყავდეს
+
+```ts
+private effects: EffectRef[] = [];
+
+protected init(): void {
+  this.effects.push(effect(() => { ... }, { injector: this.injector }));
+}
+
+protected onDestroy(): void {
+  this.effects.forEach(e => e.destroy());
+  this.effects = [];
+}
+```
+
+### 6.4 GameEngineService-ის destroy
+
+`core/game/game-engine.service.ts`-ში:
+```ts
+app.destroy(true, { children: true, texture: false });
+```
+
+`texture: false` — შერჩევითად ვიქცევით, რადგან მომავალი asset pipeline ფლობს texture cache-ს route-ების შორის. ფიქრი ნაგულისხმევზე — ფასი/სარგებელი.
+
+### 6.5 Per-route engine
+
+`GameEngineService` provided-ია **shell კომპონენტის დონეზე**, არა root-ზე. Route-დან გასვლისას DI scope იშლება და `destroy()` ავტომატურად გაიშვება.
+
+---
+
+## 7. წარმადობის პრინციპები
+
+### 7.1 Draw-once, transform-only
+
+(იხ. §3.6.) Snake-ის ანალიზიდან: 1800 rebuild/s → ~0 rebuild/s. **ფრეიმის work** მინიმალურამდე.
+
+### 7.2 Sub-stepping (anti-tunneling)
+
+ფიზიკის თამაშებში (Breakout, Lab) ბურთი სწრაფად მოძრაობს. თუ ერთი ფრეიმის გადაადგილება > ბრიკის სიგრძე, ბურთი გადაივლის ბრიკზე. გამოსავალი: **substep**-ები.
+
+```ts
+const subs = Math.min(8, Math.ceil((speed * deltaMs) / substepMaxPx));
+const subDt = deltaMs / subs;
+for (let s = 0; s < subs; s++) {
+  // physics step + collision check
+}
+```
+
+`substepMaxPx ≈ ballRadius * 0.8` — ემპირიული საუკეთესო კომპრომისი.
+
+### 7.3 Closest-hit, არა first-hit
+
+რთულ ფიზიკაში ბურთი შეიძლება ეჯახებოდეს რამდენიმე ობიექტს ერთდროულად (კუთხეში). **არ შეიძლება** პირველი ნაპოვნი — სწორი შერჩევა არის **უახლოესი** (`prev`-დან minimum dist).
+
+### 7.4 Dirty-flag patterns
+
+თუ ცვლილება იშვიათია (მაგ. shake state, hold lock), **dirty flag** უმჯობესია per-frame შემოწმებაზე:
+
+```ts
+// ❌ per-frame property check
+if (this.playRoot.position.x !== this.baseX || this.playRoot.position.y !== this.baseY) { ... }
+
+// ✅ dirty flag
+if (this.shakeActive) { reset; this.shakeActive = false; }
+```
+
+### 7.5 Pool prewarm
+
+ნებისმიერი pool-ი — particle, bullet, etc. — **prewarm-ი** boot-ზე. პირველი burst-ი/dispatch-ი არ უნდა გამოიწვიოს მახსოვრობის allocate-ი play-ის დროს.
+
+---
+
+## 8. კოდირების კონვენციები
+
+### 8.1 ფაილების სახელები
+
+- ლათინური ასოები, dash-ით გამოყოფილი: `memory-game.ts`, `score-popup.renderer.ts`.
+- Suffix იმეორებს როლს:
   - `*.service.ts` — `@Injectable`
-  - `*.model.ts` — types & interfaces only, no runtime values (small const tables OK, e.g. `DELTA`, `OPPOSITE`)
-  - `*.renderer.ts` — Pixi-side class. Public surface: `view: Container | Graphics`, plus the methods the game calls.
-  - `*.shell.ts` — smart Angular component (route entry)
-  - `<id>-game.ts` — `BasePixiGame` subclass
-  - `*-input.ts` — input adapter (keyboard, swipe, etc.)
-  - `*.ts` (no suffix) — Angular component for the file's namesake (e.g. `hud.ts`, `win-modal.ts`)
+  - `*.model.ts` — ტიპები / interface-ები (მცირე const ცხრილები ნებადართულია — `DELTA`, `OPPOSITE`, `SHAPES`)
+  - `*.renderer.ts` — Pixi-ის მხრის კლასი
+  - `*.shell.ts` — Smart Angular კომპონენტი (route entry)
+  - `<id>-game.ts` — `BasePixiGame` შვილი
+  - `*-input.ts` — input adapter
+  - `*.ts` (suffix-ის გარეშე) — Angular კომპონენტი
 
-### Class names
+### 8.2 კლასების სახელები
 
-- `PascalCase`. Component classes do NOT carry `Component` suffix when the selector and filename already convey it (Angular 21 standalone idiom). Some legacy classes still use the suffix (`HudComponent`, `WinModalComponent`, `GameCardComponent`, `HubComponent`) — be consistent within a folder.
-- Pixi classes end in `Renderer` (`BoardRenderer`, `CardRenderer`, `ArenaRenderer`, `FlashRenderer`).
-- Domain services use intent: `GameStateService`, `GameEngineService` (where "engine" inside `domain/services/` = rules, not PIXI). Note: aliasing is required at import sites; see issue #4 in §5.
-- Input adapters end in `Input` (`KeyboardInput`, `SwipeInput`).
+- **PascalCase.** Component კლასებს არ ემატება `Component` suffix-ი, თუ selector-ი და ფაილის სახელი უკვე ხსნიან როლს (Angular 21 standalone idiom). მემკვიდრეობით ზოგჯერ რჩება (`HudComponent`, `WinModalComponent`) — ფოლდერის შიგნით თანმიმდევრულობა მნიშვნელოვანია.
+- Pixi კლასები — `Renderer` suffix-ით (`BoardRenderer`, `CardRenderer`).
+- Domain სერვისები — განზრახვით (`GameStateService`, `GameEngineService` სადაც "engine" = წესები).
+- Input adapter-ები — `Input` suffix-ით (`KeyboardInput`, `SwipeInput`).
 
-### TypeScript
+### 8.3 TypeScript
 
-- `strict: true` (Angular default).
-- Prefer `readonly` on all interface fields and class members not reassigned.
-- Avoid `any`. Use `unknown` and narrow.
-- Public API of services exposes `*.asReadonly()` signals — internal `_*` signals stay private.
-- Inputs use `input.required<T>()`; outputs use `output<T>()`.
-- Domain models for state collections use `readonly Cell[]` / `readonly Card[]` — immutability at the type level.
+- `strict: true` (Angular-ის default).
+- **`readonly`** — ყველა interface ველზე და კლასის წევრზე, რომელიც არ იცვლება.
+- **`any`-ს არ ვიყენებთ.** `unknown` და narrow.
+- სერვისების public API იყენებს `*.asReadonly()` signals — შიდა `_*` signals პირადია.
+- Input-ები — `input.required<T>()`. Output-ები — `output<T>()`.
+- კოლექციების ტიპები — `readonly Cell[]` / `readonly Card[]` — immutability ტიპის დონეზე.
 
-### Component patterns
+### 8.4 კომპონენტების შაბლონები
 
-- `changeDetection: ChangeDetectionStrategy.OnPush` always.
-- Inject in field initializers: `private readonly engine = inject(GameEngineService);` — no constructor params.
-- `viewChild.required<ElementRef<HTMLDivElement>>('stage')` for canvas hosts.
-- Cleanup in `destroyRef.onDestroy(() => ...)` or in a game's `onDestroy()`.
-- Modals (`win-modal`, `game-over-modal`) ship as separate components with their own `.html` + `.scss`. Sparkle/decoration arrays computed once in field initializers — `Math.random()` runs per instance.
+- `changeDetection: ChangeDetectionStrategy.OnPush` **ყოველთვის**.
+- Inject ფილდის ინიციალიზატორში: `private readonly engine = inject(GameEngineService);`. Constructor-ის პარამეტრები არა.
+- `viewChild.required<ElementRef<HTMLDivElement>>('stage')` canvas მასპინძლებზე.
+- გასუფთავება — `destroyRef.onDestroy(() => ...)` ან თამაშის `onDestroy()`-ში.
+- Modal-ები (`win-modal`, `game-over-modal`) — ცალკე კომპონენტებად, თავისი `.html` + `.scss`. Sparkle / decoration arrays computed-ი ფილდის ინიციალიზატორში.
 
-### Renderer patterns
+### 8.5 Renderer-ების შაბლონები
 
-- Constructor takes the `Config` object and any callbacks. **No DI** in renderers.
-- Public `view: Container | Graphics` is the only field outsiders touch.
-- `setConfig(config)` to handle live config swap (resize across breakpoint). Destroys + rebuilds geometry pool.
-- `tick(deltaMs)` for time-based updates that don't depend on state diffs (pulse, particle, popup decay, flash fade).
-- `update(state)` or `render(prev, curr, t, ...)` for state-driven updates. **Draw-once + transform-only** (§3.6).
-- `destroy()` must release filters AND children.
+- კონსტრუქტორი იღებს `Config`-ს და callback-ებს. **DI არა**.
+- Public ფილდი — `view: Container | Graphics`. გარესამყაროს მხოლოდ ეს ეხება.
+- `setConfig(config)` — live config swap-ის დროს (resize across breakpoint). pool-ი ნადგურდება და ახლიდან.
+- `tick(deltaMs)` — დროზე დამოკიდებული ანიმაცია (pulse, particle decay). სუფთა transform-ები.
+- `update(state)` ან `render(prev, curr, t, ...)` — state-ით მართული ცვლილება. **Draw-once** (§3.6).
+- `destroy()` — ფილტრებიც + children-იც.
 
-### Input patterns
+### 8.6 Input-ის შაბლონები
 
-- One adapter class per input modality. Constructor takes element (or `window`-scoped) + callbacks.
-- `destroy()` removes all listeners and resets any DOM mutations (e.g. `el.style.touchAction`).
+- ერთი adapter — ერთი modality.
+- კონსტრუქტორი — element + callback-ები.
+- `destroy()` — ყველა listener წაშალე და DOM mutation-ი დააბრუნე (მაგ. `el.style.touchAction = ''`).
 
-### Comments
+### 8.7 კომენტარები
 
-- Default: none. Code should read itself.
-- Add a one-liner only when the *why* is non-obvious (e.g. the `texture: false` choice on `app.destroy`, the wrap-around interpolation in `snake.renderer.ts`).
-- No multi-line block comments. No JSDoc unless the symbol is part of a public API consumed across feature boundaries.
+- **ნაგულისხმევი — არცერთი.** კოდი თავად უნდა იკითხებოდეს.
+- ერთხაზოვანი კომენტარი მხოლოდ მაშინ, როცა *რატომ* არ არის თვალით ცხადი (მაგ. `texture: false` არჩევანი `app.destroy`-ზე, snake-ის wrap-around interpolation).
+- მრავალხაზოვანი ბლოკები არა. JSDoc-ი არა, თუ სიმბოლო არ გადადის feature-ის საზღვარს.
 
-### Workflow
+### 8.8 Workflow
 
-- **Build check before declaring done:** `npx ng build --configuration=development` from the repo root.
-- **Branching:** working on `master`. Main branch is `main` per repo metadata; commits live on `master`.
-- **Commit messages:** imperative present tense, terse. No emojis. Current pattern: `feat: <short description>`.
-- **No dependency churn:** before adding a package, justify why an existing one (Pixi, pixi-filters, Angular signals) can't do it.
-
----
-
-## 7. Roadmap
-
-### Near-term (next 1–2 sessions)
-
-1. **Pay down Snake tech debt** (priority order):
-   - Fix `GlowFilter.destroy()` leak in Snake (1 hour).
-   - Extract `hslToHex` + any other shared color/math helpers to `core/util/color.ts`.
-   - Fix Snake `resize()` so it preserves score mid-game.
-2. **Asset pipeline** — `AssetLoaderService` wrapping `Assets.load()`, manifest-driven preload, retina-aware texture resolution. Replace both games' `Text` emoji placeholders with real card-face / food sprites.
-3. **GSAP integration** — install `gsap`, replace manual tweens in `CardRenderer.tick()` (Memory flip) and `SnakeRenderer` (squash) with `gsap.to(...)`. Cleaner easing, kill-on-destroy semantics.
-
-### Mid-term
-
-4. **Sound layer** — `AudioService` (root-provided, lazy-init AudioContext); per-game sound packs registered via manifest. Mute persisted in localStorage.
-5. **Global highscore service** — `ScoreService` (`@Injectable({ providedIn: 'root' })`) backed by `localStorage` initially; manifest declares which metrics each game contributes (`moves`, `time`, `score`). Migrate Snake's per-key bestScore into this service.
-6. **Two more games** — Puzzle (sliding tiles) and Breakout. The four `disabled: true` placeholders in `games-config.ts` (Puzzle, Tetris/Blocks, Breakout, Lab) need real shells.
-7. **Shared UI primitives** — `shared/` folder: button, modal, panel, sparkle background. Used by HUDs and modals across games.
-8. **Per-game theming via `--accent` token** — already partially wired in Hub; extend to in-game HUD via `[style.--accent]` binding on the shell.
-
-### Long-term
-
-9. **Theme system** — light/dark toggle (current is dark-only); per-game theme overrides via the manifest's `accent` plus optional palette.
-10. **i18n** — Georgian + English. `@angular/localize` or signal-based translator.
-11. **Tests** — `vitest` for `domain/` (state + rules — pure TS, no Pixi). Playwright for end-to-end navigation flow + Pixi smoke tests.
-12. **Profile / progress persistence** — IndexedDB-backed user state, sync-ready shape.
-13. **Plugin manifest format** — JSON schema for `GameManifest` so games can be registered from a remote feed without code changes (long shot — would require a sandboxed loader).
+- **build-ის შემოწმება ყოველი სამუშაოს ბოლოს:** `npx ng build --configuration=development` რეპოს root-დან.
+- **Branching:** master-ზე ვმუშაობთ. main — repo metadata, მაგრამ commits master-ზე.
+- **Commit messages:** imperative present tense, ლაკონური. ემოჯი არა. ამჟამინდელი შაბლონი: `feat: <short description>`.
+- **Dependency churn-ი არა:** ახალი პაკეტის დამატებამდე დაასაბუთე, რომ უკვე არსებული (Pixi, pixi-filters, Angular signals) ვერ აკეთებს იგივეს.
 
 ---
 
-## 8. Quick reference
+## 9. Pixi-ის გამოყენების პრინციპები
+
+### 9.1 Application lifecycle
+
+```ts
+const app = new PIXI.Application();
+await app.init({
+  background: 0x000000,
+  width, height,
+  antialias: true,
+  resolution: window.devicePixelRatio,
+  autoDensity: true
+});
+hostElement.appendChild(app.canvas);
+```
+
+`init` **ასინქრონულია PIXI v8-ში** (v7-ში სინქრონული იყო). `await`-ი აუცილებელია.
+
+### 9.2 Container hierarchy
+
+```
+app.stage (root)
+  └─ playRoot (game's own root)
+      ├─ arena.view
+      ├─ playfield.view
+      ├─ active-piece.view
+      ├─ particles.view
+      └─ flash.view
+```
+
+**ცალკე layer-ები** — z-ordering ჯაჭვური. Particle-ი/flash-ი ზევით — ყოველთვის ჩანდება.
+
+### 9.3 Coordinate system
+
+Pixi v8 default — Y გადის **ქვევით** (web-ის მსგავსი). გრავიტაცია — `+y`. `rotation` დადებითი — საათისებრივი.
+
+### 9.4 Graphics API (v8)
+
+```ts
+g.clear()
+  .roundRect(x, y, w, h, r).fill({ color, alpha })
+  .stroke({ width, color, alpha });
+```
+
+Chain-ი მუშაობს. **`fill` / `stroke` ცალკე გამოძახდება** — ერთიანი `drawRect`-ი v7-ის სტილში აღარაა. `fill` და `stroke` მუშაობენ **ბოლო shape-ზე** რომელიც მის წინ აღიწერა.
+
+### 9.5 Text rendering
+
+```ts
+new Text({
+  text: '...',
+  style: { fontFamily: [...], fontSize, fill, dropShadow: {...} }
+});
+```
+
+**`new` PIXI v8-ში options object-ით.** Text-ი ძვირია (canvas-ი ხატავს თითო ცვლილებაზე) — გამოიყენე მხოლოდ Pixi-ში მნიშვნელოვანი label-ებისთვის. სხვა შემთხვევებში — DOM ჯობია.
+
+### 9.6 Filter usage
+
+```ts
+this.glow = new GlowFilter({ distance, outerStrength, innerStrength, color, quality });
+this.view.filters = [this.glow];
+```
+
+**Quality < 1** — შეგნებული პრეფერენცია. Filter-ი ძვირია — quality 0.3-0.5 საკმარისია ნებისმიერი UI-ისთვის, ნახევარს ზოგავს GPU-ს.
+
+**`GlowFilter` per-element-ზე** — ცუდი იდეა. გადაიტანე parent container-ზე — ფილტრი ერთხელ უნდა გაიშვას, ბევრ ბავშვზე.
+
+### 9.7 Ticker და frame loop
+
+```ts
+this.ticker = new Ticker();
+this.ticker.add(t => this.frame(t.deltaMS));
+this.ticker.start();
+```
+
+PixiJS-ის ticker-ი იყენებს `requestAnimationFrame`-ს. `t.deltaMS` — წინა ფრეიმიდან გასული ms-ი (typical 16-17 60fps-ზე). **ფრეიმის work** ამ რიცხვით ამატებულ-ნორმალიზებული.
+
+---
+
+## 10. გაფრთხილებები — გაკვეთილები გამოცდილებიდან
+
+ეს ის შეცდომებია, რომელიც ჩვენ უკვე გვქონდა. მათ თავიდან აცილება:
+
+### 10.1 GlowFilter leak (Snake)
+
+ბაგი: `view.destroy({ children: true })` ფილტრს არ ანადგურებს. ყოველი route-ის ცვლილება იტოვებდა GPU shader-ს. **გასწორებული Lab-ში; შემდეგ თამაშებში ხსოვდე §6.2.**
+
+### 10.2 Side-hit reflect with zero velocity (Breakout)
+
+ბაგი: `reflect({ x: 0, y: 0 }, side)` ნულოვანი ვექტორი → ბურთი ჩერდებოდა paddle-ში. გამოსწორება: paddle ერთ-მხრივი — მხოლოდ ზედა hit reflect-ი, გვერდი/ქვემო → ბურთი გაივლის და ცხოვრება დაიკარგება.
+
+### 10.3 Wall angle confusion (Lab)
+
+PixiJS rotation: **დადებითი = საათისებრივი** (y ქვემოთ). მე ვცდებოდი — funnel walls-ის ნიშნები მქონდა გადაბრუნებული, V-ის ნაცვლად ^-ფორმა იქმნებოდა. **გახსოვდეს:** დადებითი angle → მარჯვენა ბოლო ქვემოთ.
+
+### 10.4 Closed barriers without gap (Lab L7 Portal)
+
+ერთი ბაგი იყო ერთი ფაიფლი ქმნიდა "ფაიერვოლს" — ბურთი ვერ აღწევდა portal-მდე. ლექცია: **ლეიაუტის ხელით ვიზუალიზაცია** — სცადე, არ უნდა გათვალო ცარიელი დაგჯე mock-ი ფურცელზე.
+
+### 10.5 First-hit instead of closest-hit (Breakout)
+
+კუთხეში 2 ბრიკი ერთდროულად — `for` loop-ი იღებდა პირველს, არა ყველაზე ახლოს. ფიზიკურად არასწორი reflection. ფიქსი: ციკლი მთლიანად, dist² შედარება, უმცირესი — გამარჯვებული.
+
+### 10.6 Multi-ball with attached source (Breakout)
+
+ბურთი გაშვებამდე vel = (0, 0). multi-ball-ი ცდილობდა fan-out-ს ნულოვანი ვექტორიდან → atan2(0,0) = 0 → ბურთები horizontal-ზე გადიოდნენ. ფიქსი: არა-მოძრაობის შემთხვევაში default-ი (-π/2 ზევით).
+
+### 10.7 Per-frame state.status() reads (Snake)
+
+თავდაპირველი წარმოდგენა: signal წაკითხვა იაფია, მაგრამ ბევრი reads ფრეიმში — ცუდი ფსიქოლოგია. ერთხელ წაიკითხე ცვლადში, ისე გამოიყენე branch-ში.
+
+---
+
+## 11. სტატუსი — რა გაკეთდა / რა აკლდება
+
+### დასრულებული (✅)
+
+| Item | Status |
+|---|---|
+| `BasePixiGame` აბსტრაქცია | ✅ |
+| Core `GameEngineService` (Application lifecycle) | ✅ |
+| `games-config.ts` registry + `disabled` ფლაგი | ✅ |
+| Lazy-loaded route generation | ✅ — 6 ცალკე chunk |
+| Hub dashboard (dark UI, hover, --accent per game) | ✅ |
+| Design tokens `styles.scss`-ში | ✅ |
+| Responsive: `breakpoint.ts` + per-game configs | ✅ |
+| ResizeObserver routed through GameEngineService | ✅ |
+| **Memory** — domain + Pixi + HUD + win modal | ✅ |
+| **Snake** — full game, perf-optimized, best score | ✅ |
+| **Puzzle** — sliding tiles, goal preview, best persist | ✅ |
+| **Blocks** — SRS rotation, hold, next-3, mobile controls | ✅ |
+| **Breakout** — ball physics, 6 levels, 5 power-ups, lasers | ✅ |
+| **The Lab** — 12 physics levels (pegs/walls/bumpers/portals/wells/spinners) | ✅ |
+| `pixi-filters` GlowFilter integration | ✅ |
+| LocalStorage persistence (best scores, level stars) | ✅ |
+
+### აკლდება (⛔)
+
+| Item | Status |
+|---|---|
+| Asset pipeline (`AssetLoaderService` + manifest preload) | ⛔ — ყველა თამაში emoji/Text placeholder |
+| GSAP integration | ⛔ — manual sin/cos tweens |
+| Sound layer | ⛔ |
+| Global `ScoreService` (cross-game) | ⛔ — ყოველი თამაშის localStorage ცალკე |
+| Tests | ⛔ |
+| Shared UI primitives (`shared/`) | ⛔ |
+| Profile / progress (IndexedDB) | ⛔ |
+| Hub: filter / search by tag | ⛔ |
+
+### Roadmap (Roadmap)
+
+**უახლოესი:**
+1. Snake-ის bestScore + Puzzle-ის bestMoves/bestTime + Blocks/Breakout-ის bestScore + Lab-ის bestStars → ერთიანი `ScoreService`.
+2. Asset pipeline — emoji-ბის ნაცვლად რეალური სპრაიტები.
+3. GSAP — manual tweens-ის ჩანაცვლება (squash, flip, slide, paddle width).
+
+**საშუალოვადიანი:**
+4. Sound — `AudioService` + per-game sound packs.
+5. Shared UI primitives (button, modal, panel).
+6. Per-game theming `--accent` token-ით.
+7. Light/dark theme toggle.
+
+**გრძელვადიანი:**
+8. i18n — ქართული + ინგლისური.
+9. Tests — vitest domain-ისთვის, Playwright e2e.
+10. Profile / progress IndexedDB.
+11. Plugin manifest format — remote feed-დან რეგისტრაცია.
+
+---
+
+## 12. სწრაფი ცნობარი
 
 ```bash
-# install
+# ინსტალაცია
 npm install
 
 # dev server
-npx ng serve                              # http://localhost:4200
+npx ng serve                          # http://localhost:4200
 
 # production build
 npx ng build
 
-# fast feedback build (no minification)
+# fast feedback (development bundle)
 npx ng build --configuration=development
 ```
 
-### Key entry points (read first)
+### პირველი წასაკითხი ფაილები
 
-- `src/app/core/game/base-pixi-game.ts` — the contract every game implements
-- `src/app/core/game/game-engine.service.ts` — Pixi `Application` lifecycle
-- `src/app/core/responsive/breakpoint.ts` — single source for layout mode
-- `src/app/games-config.ts` — what's registered, what's disabled
-- `src/app/features/games/memory/memory-game.ts` + `pixi/renderers/card.renderer.ts` — canonical draw-once renderer pattern
-- `src/app/features/games/snake/snake-game.ts` + `pixi/renderers/snake.renderer.ts` — `SegmentState` pattern, ticker-driven simulation, dual input
+- `src/app/core/game/base-pixi-game.ts` — კონტრაქტი
+- `src/app/core/game/game-engine.service.ts` — Pixi Application lifecycle
+- `src/app/core/responsive/breakpoint.ts` — layout mode
+- `src/app/games-config.ts` — registry
+- `src/app/features/games/memory/memory-game.ts` + `pixi/renderers/card.renderer.ts` — draw-once kanonical pattern
+- `src/app/features/games/snake/snake-game.ts` + `pixi/renderers/snake.renderer.ts` — `SegmentState` pattern, ticker-driven simulation
+- `src/app/features/games/breakout/domain/services/physics.ts` — circle-rect collision
+- `src/app/features/games/lab/domain/services/physics.ts` + `integrator.ts` — სრული ფიზიკური engine
 - `src/styles.scss` — design tokens (`--neon-*`, `--ease-*`, `--font-display`)
 
 ### Plans directory
 
-Approved implementation plans live at `~/.claude/plans/`. Most recent: `adaptive-questing-pebble.md` (Snake perf optimization, 2026-04-29).
+დამტკიცებული გეგმები: `~/.claude/plans/`. ყველა მიმდინარე გეგმა აქ ცხოვრობს.
+
+---
+
+## 13. ოქროს წესები — TL;DR
+
+თუ ახლახან დაიწყე ამ რეპოზე მუშაობა, ეს სია გახსოვდე:
+
+1. **`domain/`-ში PIXI არასოდეს.** წმინდა TypeScript.
+2. **Renderer state-ს არ ცვლის.** მხოლოდ ხედავს და ხატავს.
+3. **Angular კომპონენტი PIXI-ს არ ეხება.** მხოლოდ შელი + სერვისი.
+4. **Draw-once, transform-only.** გეომეტრია — state-ცვლილებაზე; transform — ფრეიმში.
+5. **ყოველი `new` — `destroy()`.** ფილტრებიც ცალკე.
+6. **EffectRef-ი onDestroy-ში გადააგდე.**
+7. **Smart/Dummy.** Smart მართავს, Dummy ხატავს.
+8. **`OnPush` ყოველთვის.**
+9. **Sub-stepping ფიზიკაში.** Anti-tunneling.
+10. **Closest-hit, არა first-hit.**
+11. **`games-config.ts` ერთადერთია.** Routes აქედან.
+12. **`getLayoutMode()` ერთადერთი breakpoint წყაროა.**
+13. **Build პროცესის ბოლოს.** `npx ng build --configuration=development`.
+14. **კომენტარი მხოლოდ "რატომ"-ისთვის.** "რა"-ს კოდი იმეორებს.
+15. **შეცდომა → root cause.** Bypass / `--no-verify` — არასოდეს.
