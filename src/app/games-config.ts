@@ -25,11 +25,10 @@ export const GAMES: readonly GameRegistration[] = [
       description: 'Slide tiles into the correct order against a stopwatch.',
       thumbnail: '🧩',
       tags: ['logic', 'classic'],
-      accent: '#22d3ee' /* neon cyan */,
-      disabled: true
+      accent: '#22d3ee' /* neon cyan */
     },
     loadShell: () =>
-      import('./features/games/memory/memory.shell').then(m => m.MemoryShell)
+      import('./features/games/puzzle/puzzle.shell').then(m => m.PuzzleShell)
   },
   {
     manifest: {

@@ -1,0 +1,67 @@
+<div class="backdrop" aria-hidden="true"></div>
+
+<div class="rays" aria-hidden="true"></div>
+
+<div class="sparkles" aria-hidden="true">
+  @for (s of sparkles; track $index) {
+    <span
+      class="sparkle"
+      [class]="'sparkle hue-' + s.hue"
+      [style.left.%]="s.x"
+      [style.top.%]="s.y"
+      [style.--size.px]="s.size"
+      [style.animation-delay.s]="s.delay"
+      [style.animation-duration.s]="s.duration"
+    ></span>
+  }
+</div>
+
+<div class="modal" role="dialog" aria-modal="true" aria-labelledby="puzzle-win-title">
+  <div class="trophy" aria-hidden="true">
+    <span class="trophy-glow"></span>
+    <span class="trophy-icon">🧩</span>
+  </div>
+
+  <div class="eyebrow">
+    <span class="eyebrow-line"></span>
+    <span>puzzle solved</span>
+    <span class="eyebrow-line"></span>
+  </div>
+
+  <h2 id="puzzle-win-title" class="title">SOLVED</h2>
+  <p class="verdict">{{ verdict() }}</p>
+
+  <div class="stars" role="img" [attr.aria-label]="stars() + ' out of 3 stars'">
+    @for (i of starSlots; track i) {
+      <span class="star" [class.lit]="i < stars()" [style.--i]="i">★</span>
+    }
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-num">{{ moves() }}</span>
+      <span class="stat-label">Moves</span>
+      @if (isNewBestMoves()) {
+        <span class="badge">Best</span>
+      }
+    </div>
+    <div class="divider"></div>
+    <div class="stat">
+      <span class="stat-num">{{ time() }}</span>
+      <span class="stat-label">Time</span>
+      @if (isNewBestTime()) {
+        <span class="badge">Best</span>
+      }
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn primary" (click)="replay.emit()">
+      <span>Play Again</span>
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M3 8a5 5 0 0 1 8.5-3.5L13 6M13 6h-3M13 6V3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <a class="btn secondary" routerLink="/">Back to Hub</a>
+  </div>
+</div>
