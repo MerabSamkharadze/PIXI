@@ -44,16 +44,15 @@ export const GAMES: readonly GameRegistration[] = [
   },
   {
     manifest: {
-      id: 'tetris',
+      id: 'blocks',
       title: 'Blocks',
       description: 'Stack falling blocks, clear lines, chase the high score.',
       thumbnail: '🟦',
       tags: ['arcade', 'puzzle'],
-      accent: '#ec4899' /* neon pink */,
-      disabled: true
+      accent: '#ec4899' /* neon pink */
     },
     loadShell: () =>
-      import('./features/games/memory/memory.shell').then(m => m.MemoryShell)
+      import('./features/games/blocks/blocks.shell').then(m => m.BlocksShell)
   },
   {
     manifest: {

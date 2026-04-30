@@ -1,0 +1,68 @@
+<div class="backdrop" aria-hidden="true"></div>
+
+<div class="rays" aria-hidden="true"></div>
+
+<div class="sparkles" aria-hidden="true">
+  @for (s of sparkles; track $index) {
+    <span
+      class="sparkle"
+      [class]="'sparkle hue-' + s.hue"
+      [style.left.%]="s.x"
+      [style.top.%]="s.y"
+      [style.--size.px]="s.size"
+      [style.animation-delay.s]="s.delay"
+      [style.animation-duration.s]="s.duration"
+    ></span>
+  }
+</div>
+
+<div class="modal" role="dialog" aria-modal="true" aria-labelledby="blocks-over-title">
+  <div class="trophy" aria-hidden="true">
+    <span class="trophy-glow"></span>
+    <span class="trophy-icon">🟦</span>
+  </div>
+
+  <div class="eyebrow">
+    <span class="eyebrow-line"></span>
+    <span>stack overflow</span>
+    <span class="eyebrow-line"></span>
+  </div>
+
+  <h2 id="blocks-over-title" class="title">GAME OVER</h2>
+  <p class="verdict">{{ verdict() }}</p>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-num">{{ score() }}</span>
+      <span class="stat-label">Score</span>
+      @if (isNewBest()) {
+        <span class="badge">Best</span>
+      }
+    </div>
+    <div class="divider"></div>
+    <div class="stat">
+      <span class="stat-num">{{ lines() }}</span>
+      <span class="stat-label">Lines</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat">
+      <span class="stat-num">{{ level() }}</span>
+      <span class="stat-label">Level</span>
+    </div>
+    <div class="divider"></div>
+    <div class="stat">
+      <span class="stat-num">{{ time() }}</span>
+      <span class="stat-label">Time</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn primary" (click)="retry.emit()">
+      <span>Try Again</span>
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2">
+        <path d="M3 8a5 5 0 0 1 8.5-3.5L13 6M13 6h-3M13 6V3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <a class="btn secondary" routerLink="/">Back to Hub</a>
+  </div>
+</div>
