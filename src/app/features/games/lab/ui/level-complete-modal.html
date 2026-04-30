@@ -1,0 +1,45 @@
+<div class="backdrop" aria-hidden="true"></div>
+<div class="rays" aria-hidden="true"></div>
+<div class="sparkles" aria-hidden="true">
+  @for (s of sparkles; track $index) {
+    <span class="sparkle" [class]="'sparkle hue-' + s.hue"
+      [style.left.%]="s.x" [style.top.%]="s.y" [style.--size.px]="s.size"
+      [style.animation-delay.s]="s.delay" [style.animation-duration.s]="s.duration"></span>
+  }
+</div>
+
+<div class="modal" role="dialog" aria-modal="true">
+  <div class="trophy">
+    <span class="trophy-glow"></span>
+    <span class="trophy-icon">⚗️</span>
+  </div>
+  <div class="eyebrow">
+    <span class="eyebrow-line"></span>
+    <span>experiment cleared</span>
+    <span class="eyebrow-line"></span>
+  </div>
+  <h2 class="title">LAB {{ (levelIndex() + 1).toString().padStart(2, '0') }}</h2>
+  <p class="verdict">{{ levelName() }}</p>
+
+  <div class="stars-row" role="img" [attr.aria-label]="stars() + ' out of 3 stars'">
+    @for (i of starSlots; track i) {
+      <span class="star" [class.lit]="i < stars()" [style.--i]="i">★</span>
+    }
+  </div>
+
+  <div class="actions">
+    @if (hasNext()) {
+      <button type="button" class="btn primary" (click)="next.emit()">
+        <span>Next Lab</span>
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="6,3 11,8 6,13" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    } @else {
+      <button type="button" class="btn primary" (click)="retry.emit()">
+        <span>Replay</span>
+      </button>
+    }
+    <a class="btn secondary" routerLink="/">Back to Hub</a>
+  </div>
+</div>

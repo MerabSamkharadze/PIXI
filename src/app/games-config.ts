@@ -61,11 +61,10 @@ export const GAMES: readonly GameRegistration[] = [
       description: 'Bounce the ball, smash the bricks, catch the power-ups.',
       thumbnail: '🧱',
       tags: ['arcade', 'classic'],
-      accent: '#f59e0b' /* neon amber */,
-      disabled: true
+      accent: '#f59e0b' /* neon amber */
     },
     loadShell: () =>
-      import('./features/games/memory/memory.shell').then(m => m.MemoryShell)
+      import('./features/games/breakout/breakout.shell').then(m => m.BreakoutShell)
   },
   {
     manifest: {
@@ -74,10 +73,9 @@ export const GAMES: readonly GameRegistration[] = [
       description: 'A sandbox for new ideas — particles, shaders, experiments.',
       thumbnail: '⚗️',
       tags: ['experimental'],
-      accent: '#22d3ee',
-      disabled: true
+      accent: '#22d3ee'
     },
     loadShell: () =>
-      import('./features/games/memory/memory.shell').then(m => m.MemoryShell)
+      import('./features/games/lab/lab.shell').then(m => m.LabShell)
   }
 ];
